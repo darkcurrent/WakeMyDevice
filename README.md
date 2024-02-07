@@ -3,8 +3,14 @@
 
 WakeMyDevice is a Flask-based web application designed to wake devices on your local network using Wake-on-LAN (WoL) signals. It integrates with TunnelMole to provide accessible web UI through tunneled addresses and utilizes Pushover for notifications about tunneled URLs, enabling remote access and management.
 
-<img src="static/img/ss.jpg" alt="Alt Text" height="400">
-<img src="static/img/ss2.jpg" alt="Alt Text" height="400">
+<div style="display: flex;">
+    <div style="flex: 50%; padding: 5px;">
+        <img src="static/img/ss.jpg" alt="Screenshot 1" height="400">
+    </div>
+    <div style="flex: 50%; padding: 5px;">
+        <img src="static/img/ss2.jpg" alt="Screenshot 2" height="400">
+    </div>
+</div>
 
 ## Prerequisites
 
@@ -47,9 +53,9 @@ Before you start, ensure you have:
     ./start.sh
     ```
     * This script also ensures your tunneled URLs are sent to your Pushover account.
-2. Access the Web UI:
+2. **Access the Web UI**:
     * Check your Pushover notifications for the tunneled URL to access the WakeMyDevice web UI.
-3. Wake Devices:
+3. **Wake Devices**:
     * Use the web UI to wake devices on your local network by clicking the wake-up button next to the listed devices.
 
 ## Configuration
