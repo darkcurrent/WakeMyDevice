@@ -5,15 +5,54 @@ import configparser
 import requests
 import os
 import time
+import paho.mqtt.client as mqtt
+import ssl
 
 
 app = Flask(__name__)
 app.secret_key = 'hakgiabn1nmfi'  # Consider moving this to config.ini as well
+app.config['SESSION_TYPE'] = 'filesystem'
+
 
 # Load configurations
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+
+# MQTT Setup
+mqtt_config = config['MQTT']
+# MQTT Setup with a specific client ID
+client_id = "WakeMyDevice_" + os.urandom(3).hex()  # Generates a somewhat unique client ID
+client = mqtt.Client(client_id)
+
+def on_connect(client, userdata, flags, rc):
+    if rc==0:
+        print("Connected successfully to MQTT broker")
+    else:
+        print("Failed to connect, return code %d\n", rc)
+    # Subscribe to the topic on successful connect
+    client.subscribe(mqtt_config['topic'])
+
+def on_message(client, userdata, msg):
+    print(f"Message received-> {msg.topic} {str(msg.payload)}")
+    # Assuming the message payload is a MAC address
+    mac_address = str(msg.payload.decode())
+    try:
+        send_magic_packet(mac_address)
+        print(f"Wake-up signal sent successfully to {mac_address}")
+    except Exception as e:
+        print(f"Error sending wake-up signal: {e}")
+
+client.on_connect = on_connect
+client.on_message = on_message
+
+def start_mqtt_client():
+    client.username_pw_set(mqtt_config['username'], mqtt_config['password'])
+    client.connect(mqtt_config['server'], int(mqtt_config['port']), 60)
+    client.loop_start()
+
+
+# FLASK ROUTES
 # Basic auth
 def auth_required(f):
     @wraps(f)
@@ -94,4 +133,25 @@ if __name__ == '__main__':
 
     send_pushover_notification(message)
     print(message)
+
+
+    # Initialize and start the MQTT client
+    mqtt_config = config['MQTT']
+    client.username_pw_set(mqtt_config['username'], mqtt_config['password'])
+
+    # Set TLS/SSL parameters for the connection
+    client.tls_set(ca_certs=None, certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED,
+                   tls_version=ssl.PROTOCOL_TLS, ciphers=None)
+    client.tls_insecure_set(False)  # Set to True only if the server uses a self-signed certificate
+
+    client.on_connect = on_connect
+    client.on_message = on_message
+    
+    try:
+        client.connect(mqtt_config['server'], int(mqtt_config['port']), 60)
+        client.loop_start()
+        print(f"Attempting to connect to MQTT broker at {mqtt_config['server']} on port {mqtt_config['port']}")
+    except Exception as e:
+        print(f"Failed to connect to MQTT broker: {e}")
+
     app.run(host='0.0.0.0', port=5005, debug=False)
