@@ -9,3 +9,10 @@ password = your_password
 [Pushover]
 user_key = your_user_key
 api_token = your_api_token
+
+[MQTT]
+server = your_mqtt_server_url
+port = server_port
+username = mqtt_username
+password = mqtt_password
+topic = wakeup_list
